@@ -1,0 +1,43 @@
+---
+# author: lework
+
+
+- name: deloy | 移动线上代码。
+  shell: "mv {{deploy_service_workpath}}/{{deploy_service_name}}/{{ deploy_file }} {{ deploy_code_previous_path }}/{{ deploy_service_name }}/"
+  ignore_errors: true
+  
+- name: deloy | 发送最新代码到的服务器存储目录。
+  synchronize:
+    src:  "{{ jenkins_workspace }}/{{ job_name }}/target/{{ deploy_file }}"
+    dest: "{{deploy_code_online_path}}/{{ deploy_service_name }}/"
+    recursive: yes
+
+- name: deloy | 部署最新代码。
+  copy:
+    src:  "{{deploy_code_online_path}}/{{ deploy_service_name }}/"
+    dest: "{{deploy_service_workpath}}/{{deploy_service_name}}/"
+    owner: "{{ deploy_service_user }}"
+    group: "{{ deploy_service_user }}"
+    remote_src: yes
+
+- name: deloy| 判断服务是否存在
+  shell: "ls {{deploy_supervisor_file}}"
+  register: supervisor_file_status
+  ignore_errors: true
+
+- name: deploy | 当文件不存在的时候
+  script:  ../scripts/supervis_conf.sh {{ deploy_service_name }}
+  when:
+     supervisor_file_status.rc != 0
+  
+  
+- name: deloy | 重新启动服务。
+  supervisorctl:
+    name: "{{ deploy_service_name }}"
+    state: restarted
+    #supervisorctl_path: "{{ deploy_service_start_script }}"
+    username: ziztour
+    password: ziz123321
+  
+- name: deloy | 等待端口开启。
+  wait_for: port={{ deploy_service_port }} delay={{ deploy_service_port_delay }} timeout={{ deploy_service_port_timeout }}

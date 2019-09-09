@@ -1,0 +1,7 @@
+---
+- name: build | 编译jar
+  command: mvn clean package -Dmaven.test.skip=true
+  args:
+    chdir: "{{ jenkins_workspace }}/{{ job_name }}"
+  connection: local
+    

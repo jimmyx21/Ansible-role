@@ -1,0 +1,30 @@
+---
+# author: jimmyx
+
+- name: check | 服务家目录如果不存在则创建。
+  file:
+    path: "{{ deploy_service_workpath }}/{{ deploy_service_name }}"
+    owner: "{{ deploy_service_user }}"
+    owner: "{{ deploy_service_user }}"
+    mode: 755 
+    state: directory
+  
+- name: check | 检查supervisorctl状态。
+  shell: "{{ deploy_service_start_script }} -uziztour -pziz123321 status"
+  changed_when: false
+
+  
+- name: check | 代码存储目录如果不存在则创建。
+  file: path={{ item }} state=directory
+  with_items:
+   - "{{ deploy_code_online_path }}/{{ deploy_service_name }}"
+   - "{{ deploy_code_previous_path }}/{{ deploy_service_name }}"
+   - "{{ deploy_code_history_path }}/{{ deploy_service_name }}"
+
+
+- name : check | 清空代码更新的目录
+  #shell:  "rm -rf {{ deploy_code_online_path }}/{{ deploy_service_name }}/*"
+  file:
+    path: "{{ deploy_code_online_path }}/{{ deploy_service_name }}/"
+    state: absent
+  ignore_errors: true 

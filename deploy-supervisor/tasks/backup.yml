@@ -1,0 +1,17 @@
+---
+# author: jimmyx
+
+- name: backup | 生成当前时间
+  shell: echo `date +%Y-%m%d-%H%M`
+  register: date_dir
+
+- name: backup | 创建包存放日期目录
+  file:
+    path: "{{ deploy_code_history_path }}/{{ deploy_service_name }}/{{ date_dir.stdout }}/"
+    owner: "{{ deploy_service_user }}"
+    group: "{{ deploy_service_user }}"
+    state: directory
+
+
+- name: backup | 备份上线的代码。
+  shell: "mv {{ deploy_code_online_path }}/{{ deploy_service_name }}//{{ deploy_file }} {{ deploy_code_history_path }}/{{ deploy_service_name }}/{{ date_dir.stdout }}"
