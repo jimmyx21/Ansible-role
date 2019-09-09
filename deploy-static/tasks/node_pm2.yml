@@ -1,0 +1,9 @@
+---
+# author: jimmyx
+
+
+
+- name: node_pm2 | nodejs服务build与启动
+  script: ../script/node_pm2.sh {{ deploy_service }}　{{ node_env }}
+ 
+

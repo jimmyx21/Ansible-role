@@ -1,0 +1,24 @@
+---
+# author: jimmyx
+
+- name: deloy | 发送最新代码到的服务器存储目录。
+  synchronize:
+    src:  "{{ jenkins_workspace }}/{{ job_name }}/{{ deploy_file }}"
+    dest: "{{deploy_code_online_path}}/"
+    recursive: yes
+
+- name: deloy | 备份线上代码。
+  command: mv !(logs|node_modules)  "{{ deploy_code_previous_path }}"
+  ignore_errors: true
+  
+- name: deloy | 同步最新代码。
+  copy:
+    src: "{{ deploy_code_online_path }}/"
+    dest: "{{ deploy_service_workpath }}"
+    owner: "{{ deploy_service_user }}"
+    group: "{{ deploy_service_user }}"
+    remote_src: yes
+#  delegate_to: "{{ inventory_hostname }}"
+  
+- name: deloy | 目录授权给{{deploy_service_user}}。
+  file: "dest={{ deploy_service_workpath }} owner={{ deploy_service_user }} group={{ deploy_service_user }} recurse=yes"
