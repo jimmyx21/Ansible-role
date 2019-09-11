@@ -1,0 +1,46 @@
+# auther: jimmyx
+
+
+software_files_path: "/opt/software"
+software_install_path: "/usr/local"
+
+nginx_version: "1.12.1"
+
+
+nginx_file: "nginx-{{ nginx_version }}.tar.gz"
+nginx_file_path: "{{ software_files_path }}/{{ nginx_file }}"
+nginx_file_url: "https://nginx.org/download/nginx-{{ nginx_version }}.tar.gz"
+
+
+nginx_temp_path: "/var/tmp/nginx"
+nginx_conf_path: "{{ software_install_path }}/nginx-{{ nginx_version }}/conf/"
+nginx_conf_file_path: "{{ software_install_path }}/nginx-{{ nginx_version }}/conf/nginx.conf"
+
+nginx_user: 'www'
+nginx_group: 'www'
+
+nginx_build_options: ''
+nginx_configure_command: >
+  ./configure 
+  --prefix={{ software_install_path }}/nginx-{{ nginx_version }}
+  --user={{ nginx_user }}
+  --group={{ nginx_group }}
+  --with-stream
+  --with-http_ssl_module
+  --with-http_flv_module
+  --with-http_stub_status_module
+  --with-http_gzip_static_module
+  --with-http_realip_module
+  --with-pcre 
+  {{ nginx_build_options }}
+nginx_worker_processes: "{{ ansible_processor_vcpus }}"
+nginx_logpath: "/var/log/nginx"
+nginx_error_log: "{{ nginx_logpath }}/error.log"
+nginx_access_log: "{{ nginx_logpath }}/access.log"
+nginx_pidfile: '/var/run/nginx.pid'
+
+
+
+
+
+

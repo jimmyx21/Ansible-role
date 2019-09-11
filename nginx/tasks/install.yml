@@ -1,0 +1,81 @@
+---
+# jimmyx
+
+- name: install | 检查nginx本地安装包是否存在
+  shell: ls "{{ nginx_file_path }}"
+  connection: local
+  register: nginx_file_status 
+  ignore_errors: True
+  
+- name: install | 创建nginx软件包存在位置
+  file: path={{ software_files_path }} state=directory
+  connection: local
+  when: nginx_file_status | failed
+
+- name: install | 下载nginx软件包
+  get_url: url={{ nginx_file_url }} dest={{ software_files_path }} validate_certs=no
+  connection: local
+  when: nginx_file_status | failed
+
+
+- name: install | 复制已解压的nginx安装文件到ansible客户端
+  unarchive: 
+    src: "{{ nginx_file_path }}"
+    dest: "/tmp"
+    creates: "/tmp/nginx-{{ nginx_version }}"
+
+- name: install | 安装依赖的软件包
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+  - gcc
+  - gcc-c++
+  - libtool
+  - make
+  - libtool
+  - zlib
+  - zlib-devel
+  - openssl
+  - openssl-devel
+  - pcre
+  - pcre-devel
+
+- name: install | 创建nginx的组
+  group: name={{ nginx_group }}
+
+- name: install |创建nginx的用户
+  user: name={{ nginx_user }} group={{ nginx_group }} shell=/sbin/nologin createhome=no
+
+
+- name: install | 检查nginx文件是否已经存在
+  shell: ls "{{ software_install_path }}/nginx-{{ nginx_version }}/sbin/nginx"
+  register: nginx_bin_exist
+  ignore_errors: true
+
+- name: install | build nginx
+  shell: "{{ item }}"
+  with_items: 
+    - "{{ nginx_configure_command }}"
+    - make && make install
+  args:
+    chdir: "/tmp/nginx-{{ nginx_version }}/"
+  when:
+    nginx_bin_exist.rc != 0
+
+
+- name: install | 创建nginx的工作目录（1.nginx的安装目录 2.模块目录   3.日志目录）
+  file: path={{ item }} state=directory owner={{ nginx_user }} group={{ nginx_group }}
+  with_items:
+   - "{{ software_install_path }}/nginx-{{ nginx_version }}"
+   - "{{ nginx_temp_path }}/client"
+   - "{{ nginx_logpath }}"
+
+- name: install | 设置目录的用户和权限
+  file: path={{ software_install_path }}/nginx-{{ nginx_version }} state=directory owner={{ nginx_user }} group={{ nginx_group }} recurse=yes
+
+- name: install | 创建用户链接
+  file: src={{ software_install_path }}/nginx-{{ nginx_version }} dest={{ software_install_path }}/nginx owner={{ nginx_user }} group={{ nginx_group }} state=link
+
+- name: install | 配置环境变量
+  lineinfile: dest=/etc/profile line='export PATH={{ software_install_path }}/nginx/sbin/:$PATH'

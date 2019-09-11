@@ -1,0 +1,7 @@
+---
+# auther: jimmyx
+
+
+- include: install.yml
+- include: configure.yml
+- include: logrotate.yml

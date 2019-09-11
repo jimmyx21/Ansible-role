@@ -1,0 +1,40 @@
+--- 
+# auther: jimmyx
+
+- name: configure | 创建nginx主机目录
+  file: path={{nginx_conf_path}}vhost  state=directory
+
+- name: configure | nginx的主配置文件编写
+  template: 
+    dest: "{{ nginx_conf_path}}nginx.conf"
+    src: nginx.conf.j2
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+ 
+
+- name: configure | nginx的proxy文件编写
+  template:
+    dest: "{{ nginx_conf_path}}proxy.conf"
+    src: proxy.conf.j2
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+
+- name: configure | nginx的禁止抓取文件编写
+  template:
+    dest: "{{ nginx_conf_path}}agent_deny.conf"
+    src: agent_deny.conf.j2
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+
+
+- name: configure | 配置nginx启动文件
+  template:
+    dest: "/lib/systemd/system/nginx.service"
+    mode: 0755
+    src: service.j2
+
+
+
+- name: configure |  centos7启动nginx
+  systemd: "name=nginx state=started enabled=yes"
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7" 
