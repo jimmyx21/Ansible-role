@@ -1,0 +1,17 @@
+---
+# auther: jimmyx
+
+- name: 创建服务端./ssh目录
+  file: path=~/.ssh/ state=directory
+  connection: local
+
+- name: 创建ssh秘钥
+  shell: ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+  args:
+    creates: ~/.ssh/id_rsa
+  connection: local
+
+- name: 传送秘钥到agent端
+  authorized_key: user={{ host_user }} key="{{ lookup('file','/root/.ssh/id_rsa.pub')}}"
+ 
+
